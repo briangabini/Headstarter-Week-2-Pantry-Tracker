@@ -1,10 +1,11 @@
+// firebase.js
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, Firestore } from "firebase/firestore";
 
 let app;
 let analytics;
-let firestore;
+let firestore: Firestore | undefined;
 
 if (typeof window !== 'undefined') {
     // Your web app's Firebase configuration
