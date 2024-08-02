@@ -1,10 +1,11 @@
+// app/page.tsx
 'use client'
 import Image from "next/image";
-import { useState, useEffect} from "react";
-import {firestore} from "@/firebase";
-import {Box, Button, Modal, Stack, TextField, Typography} from "@mui/material";
-import { collection, query, getDocs, doc, getDoc, deleteDoc, setDoc} from "firebase/firestore";
-import { FirestoreDataConverter, DocumentData, DocumentReference, QueryDocumentSnapshot } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import { firestore } from "@/firebase";
+import { Box, Button, Modal, Stack, TextField, Typography } from "@mui/material";
+import { collection, query, getDocs, doc, getDoc, deleteDoc, setDoc } from "firebase/firestore";
+import { FirestoreDataConverter, DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
 
 interface InventoryItem {
     name: string;
@@ -16,7 +17,7 @@ export default function Home() {
     const [open, setOpen] = useState(false);
     const [itemName, setItemName] = useState("");
 
-// Define a Firestore data converter for InventoryItem
+    // Define a Firestore data converter for InventoryItem
     const inventoryItemConverter: FirestoreDataConverter<InventoryItem> = {
         toFirestore(item: InventoryItem): DocumentData {
             return { quantity: item.quantity };
@@ -28,6 +29,10 @@ export default function Home() {
     };
 
     const updateInventory = async (): Promise<void> => {
+        if (!firestore) {
+            console.error("Firestore is not initialized");
+            return;
+        }
         const snapshot = query(collection(firestore, "inventory"));
         const docs = await getDocs(snapshot);
         const inventoryList: InventoryItem[] = [];
@@ -37,13 +42,16 @@ export default function Home() {
                 name: doc.id,
                 quantity: data.quantity
             });
-        })
+        });
         console.log(inventoryList);
         setInventory(inventoryList);
-    }
-
+    };
 
     const addItem = async (item: string): Promise<void> => {
+        if (!firestore) {
+            console.error("Firestore is not initialized");
+            return;
+        }
         const docRef = doc(collection(firestore, "inventory"), item).withConverter(inventoryItemConverter);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
@@ -56,6 +64,10 @@ export default function Home() {
     };
 
     const removeItem = async (item: string): Promise<void> => {
+        if (!firestore) {
+            console.error("Firestore is not initialized");
+            return;
+        }
         const docRef = doc(collection(firestore, "inventory"), item).withConverter(inventoryItemConverter);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
@@ -69,9 +81,9 @@ export default function Home() {
         await updateInventory();
     };
 
-   useEffect(() => {
-       updateInventory()
-   }, [])
+    useEffect(() => {
+        updateInventory();
+    }, []);
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -112,14 +124,14 @@ export default function Home() {
                         direction="row"
                         spacing={2}
                     >
-                       <TextField
-                        variant="outlined"
-                        fullWidth
-                        value={itemName}
-                        onChange={(e) => {
-                            setItemName(e.target.value);
-                        }}
-                       ></TextField>
+                        <TextField
+                            variant="outlined"
+                            fullWidth
+                            value={itemName}
+                            onChange={(e) => {
+                                setItemName(e.target.value);
+                            }}
+                        ></TextField>
                         <Button
                             variant="outlined"
                             onClick={() => {
@@ -139,7 +151,7 @@ export default function Home() {
                     handleOpen();
                 }}
             >
-               Add New Item
+                Add New Item
             </Button>
             <Box
                 border="1px solid #333"
@@ -164,7 +176,7 @@ export default function Home() {
                     overflow="auto"
                 >
                     {
-                        inventory.map(({name, quantity}) => (
+                        inventory.map(({ name, quantity }) => (
                             <Box
                                 key={name}
                                 width="100%"
@@ -196,7 +208,7 @@ export default function Home() {
                                     <Button
                                         variant="contained"
                                         onClick={() => {
-                                            addItem(name)
+                                            addItem(name);
                                         }}
                                     >
                                         Add
@@ -204,7 +216,7 @@ export default function Home() {
                                     <Button
                                         variant="contained"
                                         onClick={() => {
-                                            removeItem(name)
+                                            removeItem(name);
                                         }}
                                     >
                                         Remove
