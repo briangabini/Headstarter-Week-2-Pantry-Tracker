@@ -4,8 +4,7 @@ import { useState, useEffect} from "react";
 import {firestore} from "@/firebase";
 import {Box, Button, Modal, Stack, TextField, Typography} from "@mui/material";
 import { collection, query, getDocs, doc, getDoc, deleteDoc, setDoc} from "firebase/firestore";
-import {DocumentReference} from "@firebase/firestore-types";
-
+import { FirestoreDataConverter, DocumentData, DocumentReference, QueryDocumentSnapshot } from "firebase/firestore";
 
 interface InventoryItem {
     name: string;
@@ -17,46 +16,58 @@ export default function Home() {
     const [open, setOpen] = useState(false);
     const [itemName, setItemName] = useState("");
 
-   const updateInventory = async (): Promise<void> => {
-       const snapshot = query(collection(firestore, "inventory"));
-       const docs = await getDocs(snapshot);
-       const inventoryList: InventoryItem[] = [];
-       docs.forEach(doc => {
-           const data = doc.data();
-           inventoryList.push({
-               name: doc.id,
-               quantity: data.quantity
-           });
-       })
-       console.log(inventoryList);
-       setInventory(inventoryList);
-   }
+// Define a Firestore data converter for InventoryItem
+    const inventoryItemConverter: FirestoreDataConverter<InventoryItem> = {
+        toFirestore(item: InventoryItem): DocumentData {
+            return { quantity: item.quantity };
+        },
+        fromFirestore(snapshot: QueryDocumentSnapshot): InventoryItem {
+            const data = snapshot.data();
+            return { name: snapshot.id, quantity: data.quantity };
+        }
+    };
+
+    const updateInventory = async (): Promise<void> => {
+        const snapshot = query(collection(firestore, "inventory"));
+        const docs = await getDocs(snapshot);
+        const inventoryList: InventoryItem[] = [];
+        docs.forEach(doc => {
+            const data = doc.data();
+            inventoryList.push({
+                name: doc.id,
+                quantity: data.quantity
+            });
+        })
+        console.log(inventoryList);
+        setInventory(inventoryList);
+    }
+
 
     const addItem = async (item: string): Promise<void> => {
-        const docRef = doc(collection(firestore, "inventory"), item) as DocumentReference<{ quantity: number }>;
+        const docRef = doc(collection(firestore, "inventory"), item).withConverter(inventoryItemConverter);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            const { quantity } = docSnap.data()
-            await setDoc(docRef, { quantity: quantity + 1 })
+            const { quantity } = docSnap.data();
+            await setDoc(docRef, { quantity: quantity + 1 });
         } else {
-            await setDoc(docRef, { quantity: 1 })
+            await setDoc(docRef, { quantity: 1 });
         }
-        await updateInventory()
-    }
+        await updateInventory();
+    };
 
-    const removeItem = async (item) => {
-        const docRef = doc(collection(firestore, 'inventory'), item) as DocumentReference<{ quantity: number }>;
-        const docSnap = await getDoc(docRef)
+    const removeItem = async (item: string): Promise<void> => {
+        const docRef = doc(collection(firestore, "inventory"), item).withConverter(inventoryItemConverter);
+        const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            const { quantity } = docSnap.data()
+            const { quantity } = docSnap.data();
             if (quantity === 1) {
-                await deleteDoc(docRef)
+                await deleteDoc(docRef);
             } else {
-                await setDoc(docRef, { quantity: quantity - 1 })
+                await setDoc(docRef, { quantity: quantity - 1 });
             }
         }
-        await updateInventory()
-    }
+        await updateInventory();
+    };
 
    useEffect(() => {
        updateInventory()
