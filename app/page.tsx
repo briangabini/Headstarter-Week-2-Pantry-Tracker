@@ -172,7 +172,7 @@ export default function Home() {
                                 display="flex"
                                 alignItems="center"
                                 justifyContent="space-between"
-                                bgColor={"#f0f0f0"}
+                                bgcolor={"#f0f0f0"}
                                 padding={5}
                             >
                                 <Typography
@@ -180,9 +180,7 @@ export default function Home() {
                                     color="#333"
                                     textAlign="center"
                                 >
-                                    {
-                                        name.charAt(0).toUpperCase() + name.slice(1)
-                                    }
+                                    {name.charAt(0).toUpperCase() + name.slice(1)}
                                 </Typography>
                                 <Typography
                                     variant="h3"
@@ -212,7 +210,6 @@ export default function Home() {
                                         Remove
                                     </Button>
                                 </Stack>
-
                             </Box>
                         ))
                     }
