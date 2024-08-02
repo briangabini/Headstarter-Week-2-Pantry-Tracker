@@ -1,10 +1,10 @@
-// firebase.js
-import { initializeApp } from "firebase/app";
-import { getAnalytics, isSupported as isAnalyticsSupported } from "firebase/analytics";
+// firebase.ts
+import { initializeApp, FirebaseApp } from "firebase/app";
+import { getAnalytics, isSupported as isAnalyticsSupported, Analytics } from "firebase/analytics";
 import { getFirestore, Firestore } from "firebase/firestore";
 
-let app;
-let analytics;
+let app: FirebaseApp | undefined;
+let analytics: Analytics | undefined;
 let firestore: Firestore | undefined;
 
 if (typeof window !== 'undefined') {
